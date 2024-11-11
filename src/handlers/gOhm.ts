@@ -77,6 +77,8 @@ export function handleDelegateVotesChanged(
 
   entity.save();
 
+  // TODO this event is emitted prior to the balances being updated. May need to consider a different approach to using balanceOf().
+
   // Create a new voting power snapshot for the delegatee
   const votingPowerSnapshot = createVoterVotingPowerSnapshot(
     event.params.delegate,
