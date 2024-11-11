@@ -68,7 +68,8 @@ export function createVoterVotingPowerSnapshot(
 
   snapshot.votingPower = votingPower;
   snapshot.delegatorSnapshots = voteDelegatorSnapshotIds;
-
+  snapshot.blockNumber = event.block.number;
+  snapshot.blockTimestamp = event.block.timestamp;
   snapshot.save();
 
   return snapshot;

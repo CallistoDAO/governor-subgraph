@@ -10,7 +10,7 @@
     "prettier": "^3.3.3"
   },
   "devDependencies": {
-    "matchstick-as": "0.5.0"
+    "matchstick-as": "0.6.0"
   },
   "scripts": {
     "codegen": "graph codegen && prettier --write generated/",

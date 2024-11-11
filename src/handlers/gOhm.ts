@@ -1,3 +1,4 @@
+import { Address, log } from "@graphprotocol/graph-ts";
 import {
   DelegateChanged as DelegateChangedEvent,
   DelegateVotesChanged as DelegateVotesChangedEvent,
@@ -9,6 +10,8 @@ import { getOrCreateVoteDelegator } from "../voteDelegator";
 import { createVoterVotingPowerSnapshot, getOrCreateVoter } from "../voter";
 
 export function handleDelegateChanged(event: DelegateChangedEvent): void {
+  log.info("Handling DelegateChanged event for delegator: {}", [event.params.delegator.toHexString()]);
+
   const entity = new DelegateChanged(
     event.params.delegator
       .concatI32(event.block.number.toI32())
@@ -23,6 +26,7 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  log.info("Saved DelegateChanged event for delegator: {}", [event.params.delegator.toHexString()]);
 
   // Update the delegator record to point to the new delegatee
   const voteDelegator = getOrCreateVoteDelegator(
@@ -31,19 +35,28 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   );
   voteDelegator.delegatee = getOrCreateVoter(event.params.toDelegate).id;
   voteDelegator.save();
+  log.info("Saved VoteDelegator record for delegator: {}", [event.params.delegator.toHexString()]);
 
   // Re-calculate the previous delegatee's voting power
-  const previousVoter = getOrCreateVoter(event.params.fromDelegate);
-  previousVoter.latestVotingPowerSnapshot = createVoterVotingPowerSnapshot(
+  // fromDelegate is the zero address if the delegator is not delegated
+  if (event.params.fromDelegate != Address.zero()) {
+    const previousVoter = getOrCreateVoter(event.params.fromDelegate);
+    previousVoter.latestVotingPowerSnapshot = createVoterVotingPowerSnapshot(
     event.params.fromDelegate,
     event,
-  ).id;
-  previousVoter.save();
+    ).id;
+    previousVoter.save();
+    log.info("Saved Voter record for previous delegatee: {}", [event.params.fromDelegate.toHexString()]);
+  }
+
+  // No need to update the new delegatee's voting power as it will be updated by the DelegateVotesChangedEvent event
 }
 
 export function handleDelegateVotesChanged(
   event: DelegateVotesChangedEvent,
 ): void {
+  log.info("Handling DelegateVotesChanged event for delegatee: {}", [event.params.delegate.toHexString()]);
+
   const entity = new DelegateVotesChanged(
     event.params.delegate
       .concatI32(event.block.number.toI32())
@@ -71,4 +84,6 @@ export function handleDelegateVotesChanged(
   );
   voter.latestVotingPowerSnapshot = votingPowerSnapshot.id;
   voter.save();
+
+  log.info("Saved VoterVotingPowerSnapshot record for delegatee: {}", [event.params.delegate.toHexString()]);
 }
