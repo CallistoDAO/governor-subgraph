@@ -1,3 +1,112 @@
+"""
+This entity represents a gOHM token holder that has delegated their voting power to an address.
+"""
+type VoteDelegator @entity {
+  """
+  Record ID.
+
+  Format: token holder address
+  """
+  id: Bytes!
+  """
+  Token holder address.
+  """
+  holder: Bytes!
+  """
+  Delegatee record.
+  """
+  delegatee: Voter!
+  """
+  Latest snapshot.
+  """
+  latestSnapshot: VoteDelegatorSnapshot
+
+  # Related entities
+  snapshots: [VoteDelegatorSnapshot!] @derivedFrom(field: "delegator")
+}
+
+type VoteDelegatorSnapshot @entity(immutable: true) {
+  """
+  Record ID.
+
+  Format: `{delegator}{transactionHash}{logIndex}`
+  """
+  id: Bytes!
+  """
+  Vote delegator record.
+  """
+  delegator: VoteDelegator!
+  """
+  gOHM balance.
+  """
+  balance: BigDecimal!
+
+  """
+  Block number of the snapshot.
+  """
+  blockNumber: BigInt!
+  """
+  Timestamp of the snapshot.
+  """
+  blockTimestamp: BigInt!
+}
+
+type Voter @entity {
+  """
+  Record ID.
+
+  Format: voter address
+  """
+  id: Bytes!
+  """
+  Voter address.
+  """
+  address: Bytes!
+  """
+  Latest votes snapshot.
+  """
+  latestVotingPowerSnapshot: VoterVotingPowerSnapshot
+
+  # Related entities
+  proposalsCreated: [ProposalCreated!] @derivedFrom(field: "proposer")
+  votesCasted: [VoteCast!] @derivedFrom(field: "voter")
+  votingPowerSnapshots: [VoterVotingPowerSnapshot!] @derivedFrom(field: "voter")
+  """
+  Addresses that have delegated their voting power to this voter.
+  """
+  delegators: [VoteDelegator!] @derivedFrom(field: "delegatee")
+}
+
+type VoterVotingPowerSnapshot @entity(immutable: true) {
+  """
+  Record ID.
+
+  Format: `{voter}{transactionHash}{logIndex}`
+  """
+  id: Bytes!
+  """
+  Voter address.
+  """
+  voter: Voter!
+  """
+  Voting power, the sum of all delegations.
+  """
+  votingPower: BigDecimal!
+  """
+  Balance snapshots for delegated votes. The sum of all delegations will be the voting power.
+  """
+  delegatorSnapshots: [VoteDelegatorSnapshot!]!
+
+  """
+  Block number of the snapshot.
+  """
+  blockNumber: BigInt!
+  """
+  Timestamp of the snapshot.
+  """
+  blockTimestamp: BigInt!
+}
+
 type NewAdmin @entity(immutable: true) {
   id: Bytes!
   oldAdmin: Bytes! # address
@@ -49,7 +158,7 @@ type ProposalCreated @entity(immutable: true) {
   """
   id: String!
   proposalId: BigInt! # uint256
-  proposer: Bytes! # address
+  proposer: Voter!
   targets: [Bytes!]! # address[]
   values: [BigInt!]! # uint256[]
   signatures: [String!]! # string[]
@@ -158,10 +267,10 @@ type VoteCast @entity(immutable: true) {
   Format: `{proposalId}-{voter}-{transactionHash}-{logIndex}`
   """
   id: String!
-  voter: Bytes! # address
+  voter: Voter!
   proposalId: BigInt! # uint256
   support: Int! # uint8
-  votes: BigInt! # uint256
+  votes: BigDecimal!
   reason: String! # string
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -200,6 +309,62 @@ type WhitelistGuardianSet @entity(immutable: true) {
   id: Bytes!
   oldGuardian: Bytes! # address
   newGuardian: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegateChanged @entity(immutable: true) {
+  """
+  Record ID.
+
+  Format: `{delegator}{blockNumber}{logIndex}`
+  """
+  id: Bytes!
+  """
+  Address delegating voting power.
+  """
+  delegator: VoteDelegator!
+  """
+  The previous delegatee.
+  """
+  previousDelegatee: Voter!
+  """
+  The new delegatee.
+  """
+  newDelegatee: Voter!
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+"""
+This entity records the event emitted when the voting power delegated to a delegatee changes.
+
+Due to a limitation in the emitted event, it is not possible to determine the delegator.
+"""
+type DelegateVotesChanged @entity(immutable: true) {
+  """
+  Record ID.
+
+  Format: `{delegatee}{blockNumber}{logIndex}`
+  """
+  id: Bytes!
+
+  """
+  Address receiving delegated voting power.
+  """
+  delegatee: Voter!
+  """
+  Previous voting power contributed by the delegator.
+  """
+  previousBalance: BigDecimal!
+  """
+  New voting power contributed by the delegator.
+  """
+  newBalance: BigDecimal!
+
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

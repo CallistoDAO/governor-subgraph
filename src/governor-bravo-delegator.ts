@@ -35,6 +35,9 @@ import {
   WhitelistAccountExpirationSet,
   WhitelistGuardianSet,
 } from "../generated/schema";
+import { getOrCreateVoter } from "./voter";
+import { GOHM_DECIMALS } from "./constants";
+import { toDecimal } from "./utils/number";
 
 export function handleNewAdmin(event: NewAdminEvent): void {
   let entity = new NewAdmin(
@@ -103,7 +106,7 @@ export function handleProposalCanceled(event: ProposalCanceledEvent): void {
 export function handleProposalCreated(event: ProposalCreatedEvent): void {
   let entity = new ProposalCreated(event.params.id.toString());
   entity.proposalId = event.params.id;
-  entity.proposer = event.params.proposer;
+  entity.proposer = getOrCreateVoter(event.params.proposer).id;
   entity.targets = event.params.targets.map<Bytes>((target: Bytes) => target);
   entity.values = event.params.values;
   entity.signatures = event.params.signatures;
@@ -211,10 +214,10 @@ export function handleVoteCast(event: VoteCastEvent): void {
   let entity = new VoteCast(
     `${event.params.proposalId.toString()}-${event.params.voter.toHexString()}-${event.transaction.hash.toHexString()}-${event.logIndex.toI32()}`,
   );
-  entity.voter = event.params.voter;
+  entity.voter = getOrCreateVoter(event.params.voter).id;
   entity.proposalId = event.params.proposalId;
   entity.support = event.params.support;
-  entity.votes = event.params.votes;
+  entity.votes = toDecimal(event.params.votes, GOHM_DECIMALS);
   entity.reason = event.params.reason;
 
   entity.blockNumber = event.block.number;

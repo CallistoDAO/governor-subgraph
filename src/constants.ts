@@ -1,0 +1,2 @@
+export const GOHM_CONTRACT = "0x0ab87046fBb341D058F17CBC4c1133F25a20a52f";
+export const GOHM_DECIMALS = 18;
