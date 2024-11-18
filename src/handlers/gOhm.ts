@@ -1,4 +1,4 @@
-import { log } from "@graphprotocol/graph-ts";
+import { Address, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   DelegateChanged as DelegateChangedEvent,
   DelegateVotesChanged as DelegateVotesChangedEvent,
@@ -33,12 +33,17 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
     event.params.delegator.toHexString(),
   ]);
 
+  // If the votes have been un-delegated, set the voterId to null
+  const voterId: Bytes | null = event.params.toDelegate.equals(Address.zero())
+    ? null
+    : getOrCreateVoter(event.params.toDelegate).id;
+
   // Update the delegator record to point to the new delegatee
   const voteDelegator = getOrCreateVoteDelegator(
     event.params.delegator,
     event.params.toDelegate,
   );
-  voteDelegator.delegatee = getOrCreateVoter(event.params.toDelegate).id;
+  voteDelegator.delegatee = voterId;
   voteDelegator.save();
   log.info("Saved VoteDelegator record for delegator: {}", [
     event.params.delegator.toHexString(),
@@ -54,26 +59,28 @@ export function handleDelegateVotesChanged(
     event.params.delegate.toHexString(),
   ]);
 
+  const voter = getOrCreateVoter(event.params.delegate);
+
+  // Create a new voting power snapshot for the delegatee
+  const votingPowerSnapshot = createVoterVotingPowerSnapshot(voter, event);
+
+  // Create the DelegateVotesChanged record
   const entity = new DelegateVotesChanged(
     event.params.delegate
       .concatI32(event.block.number.toI32())
       .concatI32(event.logIndex.toI32()),
   );
-
-  const voter = getOrCreateVoter(event.params.delegate);
   entity.delegatee = voter.id;
   entity.previousBalance = toDecimal(
     event.params.previousBalance,
     GOHM_DECIMALS,
   );
   entity.newBalance = toDecimal(event.params.newBalance, GOHM_DECIMALS);
+  entity.snapshot = votingPowerSnapshot.id;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
-
-  // Create a new voting power snapshot for the delegatee
-  createVoterVotingPowerSnapshot(voter, event);
 }

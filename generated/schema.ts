@@ -54,8 +54,8 @@ export class VoteDelegator extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get holder(): Bytes {
-    let value = this.get("holder");
+  get address(): Bytes {
+    let value = this.get("address");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -63,21 +63,25 @@ export class VoteDelegator extends Entity {
     }
   }
 
-  set holder(value: Bytes) {
-    this.set("holder", Value.fromBytes(value));
+  set address(value: Bytes) {
+    this.set("address", Value.fromBytes(value));
   }
 
-  get delegatee(): Bytes {
+  get delegatee(): Bytes | null {
     let value = this.get("delegatee");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return null;
     } else {
       return value.toBytes();
     }
   }
 
-  set delegatee(value: Bytes) {
-    this.set("delegatee", Value.fromBytes(value));
+  set delegatee(value: Bytes | null) {
+    if (!value) {
+      this.unset("delegatee");
+    } else {
+      this.set("delegatee", Value.fromBytes(<Bytes>value));
+    }
   }
 }
 
@@ -133,23 +137,6 @@ export class Voter extends Entity {
 
   set address(value: Bytes) {
     this.set("address", Value.fromBytes(value));
-  }
-
-  get latestVotingPowerSnapshot(): Bytes | null {
-    let value = this.get("latestVotingPowerSnapshot");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set latestVotingPowerSnapshot(value: Bytes | null) {
-    if (!value) {
-      this.unset("latestVotingPowerSnapshot");
-    } else {
-      this.set("latestVotingPowerSnapshot", Value.fromBytes(<Bytes>value));
-    }
   }
 
   get proposalsCreated(): ProposalCreatedLoader {
@@ -281,6 +268,14 @@ export class VoterVotingPowerSnapshot extends Entity {
 
   set blockTimestamp(value: BigInt) {
     this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get event(): DelegateVotesChangedLoader {
+    return new DelegateVotesChangedLoader(
+      "VoterVotingPowerSnapshot",
+      this.get("id")!.toBytes().toHexString(),
+      "event",
+    );
   }
 }
 
@@ -2421,6 +2416,19 @@ export class DelegateVotesChanged extends Entity {
     this.set("newBalance", Value.fromBigDecimal(value));
   }
 
+  get snapshot(): Bytes {
+    let value = this.get("snapshot");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set snapshot(value: Bytes) {
+    this.set("snapshot", Value.fromBytes(value));
+  }
+
   get blockNumber(): BigInt {
     let value = this.get("blockNumber");
     if (!value || value.kind == ValueKind.NULL) {
@@ -2530,6 +2538,24 @@ export class VoteDelegatorLoader extends Entity {
   load(): VoteDelegator[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<VoteDelegator[]>(value);
+  }
+}
+
+export class DelegateVotesChangedLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): DelegateVotesChanged[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<DelegateVotesChanged[]>(value);
   }
 }
 

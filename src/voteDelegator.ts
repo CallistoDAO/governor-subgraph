@@ -8,7 +8,7 @@ export function getOrCreateVoteDelegator(
   let entity = VoteDelegator.load(delegator);
   if (entity == null) {
     entity = new VoteDelegator(delegator);
-    entity.holder = delegator;
+    entity.address = delegator;
     entity.delegatee = delegatee;
 
     entity.save();

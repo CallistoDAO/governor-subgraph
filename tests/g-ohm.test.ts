@@ -112,12 +112,12 @@ describe("delegation", () => {
     );
     const voteDelegatorRecord = VoteDelegator.load(HOLDER);
     assert.stringEquals(
-      voteDelegatorRecord!.holder.toHexString(),
+      voteDelegatorRecord!.address.toHexString(),
       HOLDER.toHexString(),
-      "VoteDelegator: Holder should be the holder",
+      "VoteDelegator: Address should be the holder",
     );
     assert.stringEquals(
-      voteDelegatorRecord!.delegatee.toHexString(),
+      voteDelegatorRecord!.delegatee!.toHexString(),
       VOTER.toHexString(),
       "VoteDelegator: Delegatee should be the voter",
     );

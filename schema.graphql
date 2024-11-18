@@ -9,13 +9,15 @@ type VoteDelegator @entity {
   """
   id: Bytes!
   """
-  Token holder address.
+  Address of the owner/delegator.
   """
-  holder: Bytes!
+  address: Bytes!
   """
   Delegatee record.
+
+  Null if the votes have not been delegated.
   """
-  delegatee: Voter!
+  delegatee: Voter
 }
 
 """
@@ -70,6 +72,9 @@ type VoterVotingPowerSnapshot @entity(immutable: true) {
   Timestamp of the snapshot.
   """
   blockTimestamp: BigInt!
+
+  # Related records
+  event: DelegateVotesChanged @derivedFrom(field: "snapshot")
 }
 
 type NewAdmin @entity(immutable: true) {
@@ -329,6 +334,10 @@ type DelegateVotesChanged @entity(immutable: true) {
   New voting power contributed by the delegator.
   """
   newBalance: BigDecimal!
+  """
+  Voting power snapshot record.
+  """
+  snapshot: VoterVotingPowerSnapshot!
 
   blockNumber: BigInt!
   blockTimestamp: BigInt!
