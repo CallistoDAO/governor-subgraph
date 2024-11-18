@@ -16,41 +16,11 @@ type VoteDelegator @entity {
   Delegatee record.
   """
   delegatee: Voter!
-  """
-  Latest snapshot.
-  """
-  latestSnapshot: VoteDelegatorSnapshot
-
-  # Related entities
-  snapshots: [VoteDelegatorSnapshot!] @derivedFrom(field: "delegator")
 }
 
-type VoteDelegatorSnapshot @entity(immutable: true) {
-  """
-  Record ID.
-
-  Format: `{delegator}{transactionHash}{logIndex}`
-  """
-  id: Bytes!
-  """
-  Vote delegator record.
-  """
-  delegator: VoteDelegator!
-  """
-  gOHM balance.
-  """
-  balance: BigDecimal!
-
-  """
-  Block number of the snapshot.
-  """
-  blockNumber: BigInt!
-  """
-  Timestamp of the snapshot.
-  """
-  blockTimestamp: BigInt!
-}
-
+"""
+This entity represents a voter that has received delegations and can cast votes.
+"""
 type Voter @entity {
   """
   Record ID.
@@ -77,11 +47,14 @@ type Voter @entity {
   delegators: [VoteDelegator!] @derivedFrom(field: "delegatee")
 }
 
+"""
+This entity represents a snapshot of a voter's voting power.
+"""
 type VoterVotingPowerSnapshot @entity(immutable: true) {
   """
   Record ID.
 
-  Format: `{voter}{transactionHash}{logIndex}`
+  Format: `{voter}{blockNumber}{logIndex}`
   """
   id: Bytes!
   """
@@ -92,10 +65,6 @@ type VoterVotingPowerSnapshot @entity(immutable: true) {
   Voting power, the sum of all delegations.
   """
   votingPower: BigDecimal!
-  """
-  Balance snapshots for delegated votes. The sum of all delegations will be the voting power.
-  """
-  delegatorSnapshots: [VoteDelegatorSnapshot!]!
 
   """
   Block number of the snapshot.

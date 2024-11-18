@@ -7,10 +7,13 @@ import { DelegateChanged, DelegateVotesChanged } from "../../generated/schema";
 import { GOHM_DECIMALS } from "../constants";
 import { toDecimal } from "../utils/number";
 import { getOrCreateVoteDelegator } from "../voteDelegator";
-import { createVoterVotingPowerSnapshot, getOrCreateVoter } from "../voter";
+import { getOrCreateVoter } from "../voter";
+import { createVoterVotingPowerSnapshot } from "../voterSnapshot";
 
 export function handleDelegateChanged(event: DelegateChangedEvent): void {
-  log.info("Handling DelegateChanged event for delegator: {}", [event.params.delegator.toHexString()]);
+  log.info("Handling DelegateChanged event for delegator: {}", [
+    event.params.delegator.toHexString(),
+  ]);
 
   const entity = new DelegateChanged(
     event.params.delegator
@@ -26,7 +29,9 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
-  log.info("Saved DelegateChanged event for delegator: {}", [event.params.delegator.toHexString()]);
+  log.info("Saved DelegateChanged event for delegator: {}", [
+    event.params.delegator.toHexString(),
+  ]);
 
   // Update the delegator record to point to the new delegatee
   const voteDelegator = getOrCreateVoteDelegator(
@@ -35,27 +40,19 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   );
   voteDelegator.delegatee = getOrCreateVoter(event.params.toDelegate).id;
   voteDelegator.save();
-  log.info("Saved VoteDelegator record for delegator: {}", [event.params.delegator.toHexString()]);
+  log.info("Saved VoteDelegator record for delegator: {}", [
+    event.params.delegator.toHexString(),
+  ]);
 
-  // Re-calculate the previous delegatee's voting power
-  // fromDelegate is the zero address if the delegator is not delegated
-  if (event.params.fromDelegate != Address.zero()) {
-    const previousVoter = getOrCreateVoter(event.params.fromDelegate);
-    previousVoter.latestVotingPowerSnapshot = createVoterVotingPowerSnapshot(
-    event.params.fromDelegate,
-    event,
-    ).id;
-    previousVoter.save();
-    log.info("Saved Voter record for previous delegatee: {}", [event.params.fromDelegate.toHexString()]);
-  }
-
-  // No need to update the new delegatee's voting power as it will be updated by the DelegateVotesChangedEvent event
+  // No need to update the old or new delegatee's voting power as they will be updated by the DelegateVotesChangedEvent events
 }
 
 export function handleDelegateVotesChanged(
   event: DelegateVotesChangedEvent,
 ): void {
-  log.info("Handling DelegateVotesChanged event for delegatee: {}", [event.params.delegate.toHexString()]);
+  log.info("Handling DelegateVotesChanged event for delegatee: {}", [
+    event.params.delegate.toHexString(),
+  ]);
 
   const entity = new DelegateVotesChanged(
     event.params.delegate
@@ -77,15 +74,10 @@ export function handleDelegateVotesChanged(
 
   entity.save();
 
-  // TODO this event is emitted prior to the balances being updated. May need to consider a different approach to using balanceOf().
-
   // Create a new voting power snapshot for the delegatee
-  const votingPowerSnapshot = createVoterVotingPowerSnapshot(
-    event.params.delegate,
-    event,
-  );
+  const votingPowerSnapshot = createVoterVotingPowerSnapshot(voter, event);
+
+  // Update the voter record to point to the new voting power snapshot
   voter.latestVotingPowerSnapshot = votingPowerSnapshot.id;
   voter.save();
-
-  log.info("Saved VoterVotingPowerSnapshot record for delegatee: {}", [event.params.delegate.toHexString()]);
 }

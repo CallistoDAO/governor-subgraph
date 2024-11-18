@@ -1,9 +1,6 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
-import {
-  DelegateChanged,
-  DelegateVotesChanged,
-} from "../generated/gOHM/gOHM";
+import { DelegateChanged, DelegateVotesChanged } from "../generated/gOHM/gOHM";
 
 export function createDelegateChangedEvent(
   delegator: Address,
@@ -46,8 +43,7 @@ export function createDelegateVotesChangedEvent(
   const mockEvent = newMockEvent();
   mockEvent.logIndex = logIndex;
 
-  let delegateVotesChangedEvent =
-    changetype<DelegateVotesChanged>(mockEvent);
+  let delegateVotesChangedEvent = changetype<DelegateVotesChanged>(mockEvent);
 
   delegateVotesChangedEvent.parameters = new Array();
 
