@@ -83,7 +83,6 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - VoteDelegator
-        - VoteDelegatorSnapshot
         - Voter
         - VoterVotingPowerSnapshot
         - DelegateChanged
