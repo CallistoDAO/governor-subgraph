@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { log } from "@graphprotocol/graph-ts";
 import { DelegateVotesChanged } from "../generated/gOHM/gOHM";
 import { Voter, VoterVotingPowerSnapshot } from "../generated/schema";
 import { toDecimal } from "./utils/number";
@@ -21,6 +21,10 @@ export function createVoterVotingPowerSnapshot(
   log.info("Voting power set for delegate: {} = {}", [
     event.params.delegate.toHexString(),
     snapshot.votingPower.toString(),
+  ]);
+  log.info("Previous voting power for delegate: {} = {}", [
+    event.params.delegate.toHexString(),
+    toDecimal(event.params.previousBalance, GOHM_DECIMALS).toString(),
   ]);
 
   snapshot.voter = voter.id;
