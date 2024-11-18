@@ -152,11 +152,6 @@ describe("delegation", () => {
       VOTER.toHexString(),
       "Voter: Address should be the voter",
     );
-    assert.stringEquals(
-      voterRecord!.latestVotingPowerSnapshot!.toHexString(),
-      voterVotingPowerSnapshotRecord!.id.toHexString(),
-      "Voter: Latest voting power snapshot should be the voter voting power snapshot",
-    );
   });
 
   test("delegatee changed", () => {
