@@ -76,7 +76,7 @@ dataSources:
     source:
       address: "0x0ab87046fBb341D058F17CBC4c1133F25a20a52f"
       abi: gOHM
-      startBlock: 13674957
+      startBlock: 13674957 # Deployment block, required in order to have complete delegation records
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
