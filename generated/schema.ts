@@ -2285,30 +2285,38 @@ export class DelegateChanged extends Entity {
     this.set("delegator", Value.fromBytes(value));
   }
 
-  get previousDelegatee(): Bytes {
+  get previousDelegatee(): Bytes | null {
     let value = this.get("previousDelegatee");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return null;
     } else {
       return value.toBytes();
     }
   }
 
-  set previousDelegatee(value: Bytes) {
-    this.set("previousDelegatee", Value.fromBytes(value));
+  set previousDelegatee(value: Bytes | null) {
+    if (!value) {
+      this.unset("previousDelegatee");
+    } else {
+      this.set("previousDelegatee", Value.fromBytes(<Bytes>value));
+    }
   }
 
-  get newDelegatee(): Bytes {
+  get newDelegatee(): Bytes | null {
     let value = this.get("newDelegatee");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return null;
     } else {
       return value.toBytes();
     }
   }
 
-  set newDelegatee(value: Bytes) {
-    this.set("newDelegatee", Value.fromBytes(value));
+  set newDelegatee(value: Bytes | null) {
+    if (!value) {
+      this.unset("newDelegatee");
+    } else {
+      this.set("newDelegatee", Value.fromBytes(<Bytes>value));
+    }
   }
 
   get blockNumber(): BigInt {

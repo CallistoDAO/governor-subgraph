@@ -302,11 +302,11 @@ type DelegateChanged @entity(immutable: true) {
   """
   The previous delegatee.
   """
-  previousDelegatee: Voter!
+  previousDelegatee: Voter
   """
   The new delegatee.
   """
-  newDelegatee: Voter!
+  newDelegatee: Voter
 
   blockNumber: BigInt!
   blockTimestamp: BigInt!

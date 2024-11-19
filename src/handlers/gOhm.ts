@@ -15,26 +15,13 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
     event.params.delegator.toHexString(),
   ]);
 
-  const entity = new DelegateChanged(
-    event.params.delegator
-      .concatI32(event.block.number.toI32())
-      .concatI32(event.logIndex.toI32()),
-  );
-  entity.delegator = event.params.delegator;
-  entity.previousDelegatee = event.params.fromDelegate;
-  entity.newDelegatee = event.params.toDelegate;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-  log.info("Saved DelegateChanged event for delegator: {}", [
-    event.params.delegator.toHexString(),
-  ]);
-
-  // If the votes have been un-delegated, set the voterId to null
-  const voterId: Bytes | null = event.params.toDelegate.equals(Address.zero())
+  // Create/get voters
+  log.info("Previous delegatee: {}", [event.params.fromDelegate.toHexString()]);
+  log.info("New delegatee: {}", [event.params.toDelegate.toHexString()]);
+  const previousVoterId: Bytes | null = event.params.fromDelegate.equals(Address.zero())
+    ? null
+    : getOrCreateVoter(event.params.fromDelegate).id;
+  const newVoterId: Bytes | null = event.params.toDelegate.equals(Address.zero())
     ? null
     : getOrCreateVoter(event.params.toDelegate).id;
 
@@ -43,9 +30,28 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
     event.params.delegator,
     event.params.toDelegate,
   );
-  voteDelegator.delegatee = voterId;
+  voteDelegator.delegatee = newVoterId;
   voteDelegator.save();
   log.info("Saved VoteDelegator record for delegator: {}", [
+    event.params.delegator.toHexString(),
+  ]);
+
+  // Save the DelegateChanged event
+  const entity = new DelegateChanged(
+    event.params.delegator
+      .concatI32(event.block.number.toI32())
+      .concatI32(event.logIndex.toI32()),
+  );
+  entity.delegator = voteDelegator.id;
+  entity.previousDelegatee = previousVoterId;
+  entity.newDelegatee = newVoterId;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+  log.info("Saved DelegateChanged event for delegator: {}", [
     event.params.delegator.toHexString(),
   ]);
 
