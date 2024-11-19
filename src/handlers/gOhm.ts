@@ -18,10 +18,14 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   // Create/get voters
   log.info("Previous delegatee: {}", [event.params.fromDelegate.toHexString()]);
   log.info("New delegatee: {}", [event.params.toDelegate.toHexString()]);
-  const previousVoterId: Bytes | null = event.params.fromDelegate.equals(Address.zero())
+  const previousVoterId: Bytes | null = event.params.fromDelegate.equals(
+    Address.zero(),
+  )
     ? null
     : getOrCreateVoter(event.params.fromDelegate).id;
-  const newVoterId: Bytes | null = event.params.toDelegate.equals(Address.zero())
+  const newVoterId: Bytes | null = event.params.toDelegate.equals(
+    Address.zero(),
+  )
     ? null
     : getOrCreateVoter(event.params.toDelegate).id;
 
