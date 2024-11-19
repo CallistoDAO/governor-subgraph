@@ -139,6 +139,23 @@ export class Voter extends Entity {
     this.set("address", Value.fromBytes(value));
   }
 
+  get latestVotingPowerSnapshot(): Bytes | null {
+    let value = this.get("latestVotingPowerSnapshot");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set latestVotingPowerSnapshot(value: Bytes | null) {
+    if (!value) {
+      this.unset("latestVotingPowerSnapshot");
+    } else {
+      this.set("latestVotingPowerSnapshot", Value.fromBytes(<Bytes>value));
+    }
+  }
+
   get proposalsCreated(): ProposalCreatedLoader {
     return new ProposalCreatedLoader(
       "Voter",

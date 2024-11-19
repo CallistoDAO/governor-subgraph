@@ -23,7 +23,7 @@ type VoteDelegator @entity {
 """
 This entity represents a voter that has received delegations and can cast votes.
 """
-type Voter @entity(immutable: true) {
+type Voter @entity {
   """
   Record ID.
 
@@ -34,6 +34,10 @@ type Voter @entity(immutable: true) {
   Voter address.
   """
   address: Bytes!
+  """
+  Latest voting power snapshot.
+  """
+  latestVotingPowerSnapshot: VoterVotingPowerSnapshot
 
   # Related entities
   proposalsCreated: [ProposalCreated!] @derivedFrom(field: "proposer")

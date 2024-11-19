@@ -64,6 +64,10 @@ export function handleDelegateVotesChanged(
   // Create a new voting power snapshot for the delegatee
   const votingPowerSnapshot = createVoterVotingPowerSnapshot(voter, event);
 
+  // Update the voter's latest voting power snapshot
+  voter.latestVotingPowerSnapshot = votingPowerSnapshot.id;
+  voter.save();
+
   // Create the DelegateVotesChanged record
   const entity = new DelegateVotesChanged(
     event.params.delegate
