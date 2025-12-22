@@ -96,3 +96,27 @@ dataSources:
         - event: DelegateVotesChanged(indexed address,uint256,uint256)
           handler: handleDelegateVotesChanged
       file: ./src/handlers/gOhm.ts
+  - kind: ethereum
+    name: DelegateEscrowFactory
+    network: mainnet
+    source:
+      address: "0xC84157C2306238C9330fEa14774a82A53a127A59"
+      abi: DelegateEscrowFactory
+      startBlock: 21629617 # Cooler V2 deployment block
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DelegateEscrow
+        - CoolerDelegation
+        - Voter
+      abis:
+        - name: DelegateEscrowFactory
+          file: ./abis/DelegateEscrowFactory.json
+      eventHandlers:
+        - event: DelegateEscrowCreated(indexed address,indexed address,indexed address)
+          handler: handleDelegateEscrowCreated
+        - event: Delegate(indexed address,indexed address,indexed address,int256)
+          handler: handleDelegate
+      file: ./src/handlers/delegateEscrowFactory.ts

@@ -347,3 +347,69 @@ type DelegateVotesChanged @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+"""
+This entity tracks the mapping between DelegateEscrow contracts and their delegate addresses.
+Created when a new escrow is deployed via DelegateEscrowFactory.
+"""
+type DelegateEscrow @entity {
+  """
+  Record ID.
+
+  Format: escrow contract address
+  """
+  id: Bytes!
+  """
+  The escrow contract address.
+  """
+  escrow: Bytes!
+  """
+  The delegate receiving voting power from this escrow.
+  """
+  delegate: Voter!
+  """
+  Block when the escrow was created.
+  """
+  blockNumber: BigInt!
+  """
+  Timestamp when the escrow was created.
+  """
+  blockTimestamp: BigInt!
+}
+
+"""
+This entity tracks Cooler V2 delegations, mapping original users to their delegates.
+This provides attribution for delegations made through Cooler V2's DelegateEscrow system.
+"""
+type CoolerDelegation @entity {
+  """
+  Record ID.
+
+  Format: {user}-{delegate}
+  """
+  id: String!
+  """
+  The original Cooler V2 user who deposited collateral.
+  """
+  user: Bytes!
+  """
+  The delegate receiving voting power.
+  """
+  delegate: Voter!
+  """
+  The escrow contract holding the delegated gOHM.
+  """
+  escrow: Bytes!
+  """
+  Current delegated amount.
+  """
+  amount: BigDecimal!
+  """
+  Block when first delegated.
+  """
+  blockNumber: BigInt!
+  """
+  Timestamp when first delegated.
+  """
+  blockTimestamp: BigInt!
+}
