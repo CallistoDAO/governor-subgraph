@@ -93,13 +93,12 @@ describe("delegation", () => {
       HOLDER.toHexString(),
       "DelegateChanged: Delegator should be the holder",
     );
-    assert.stringEquals(
-      delegateChangedRecord!.previousDelegatee.toHexString(),
-      Address.zero().toHexString(),
-      "DelegateChanged: Previous delegatee should be the zero address",
+    assert.assertTrue(
+      delegateChangedRecord!.previousDelegatee === null,
+      "DelegateChanged: Previous delegatee should be null (zero address)",
     );
     assert.stringEquals(
-      delegateChangedRecord!.newDelegatee.toHexString(),
+      delegateChangedRecord!.newDelegatee!.toHexString(),
       VOTER.toHexString(),
       "DelegateChanged: New delegatee should be the voter",
     );
@@ -216,12 +215,12 @@ describe("delegation", () => {
       "DelegateChanged: Delegator should be the holder",
     );
     assert.stringEquals(
-      delegateChangedRecord!.previousDelegatee.toHexString(),
+      delegateChangedRecord!.previousDelegatee!.toHexString(),
       VOTER.toHexString(),
       "DelegateChanged: Previous delegatee should be the voter",
     );
     assert.stringEquals(
-      delegateChangedRecord!.newDelegatee.toHexString(),
+      delegateChangedRecord!.newDelegatee!.toHexString(),
       Address.fromString(
         "0x0000000000000000000000000000000000000003",
       ).toHexString(),
