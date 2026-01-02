@@ -32,9 +32,14 @@ export function createDelegateEvent(
   caller: Address,
   onBehalfOf: Address,
   delegationAmountDelta: BigInt,
+  blockNumber: BigInt = BigInt.fromI32(1),
+  logIndex: BigInt = BigInt.fromI32(1),
 ): Delegate {
   const mockEvent = newMockEvent();
   let event = changetype<Delegate>(mockEvent);
+
+  event.block.number = blockNumber;
+  event.logIndex = logIndex;
 
   event.parameters = new Array();
   event.parameters.push(
@@ -44,7 +49,10 @@ export function createDelegateEvent(
     new ethereum.EventParam("caller", ethereum.Value.fromAddress(caller)),
   );
   event.parameters.push(
-    new ethereum.EventParam("onBehalfOf", ethereum.Value.fromAddress(onBehalfOf)),
+    new ethereum.EventParam(
+      "onBehalfOf",
+      ethereum.Value.fromAddress(onBehalfOf),
+    ),
   );
   event.parameters.push(
     new ethereum.EventParam(

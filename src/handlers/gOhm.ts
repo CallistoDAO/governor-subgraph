@@ -3,7 +3,11 @@ import {
   DelegateChanged as DelegateChangedEvent,
   DelegateVotesChanged as DelegateVotesChangedEvent,
 } from "../../generated/gOHM/gOHM";
-import { DelegateChanged, DelegateVotesChanged } from "../../generated/schema";
+import {
+  DelegateChanged,
+  DelegateEscrow,
+  DelegateVotesChanged,
+} from "../../generated/schema";
 import { GOHM_DECIMALS } from "../constants";
 import { toDecimal } from "../utils/number";
 import { getOrCreateVoteDelegator } from "../voteDelegator";
@@ -14,6 +18,20 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
   log.info("Handling DelegateChanged event for delegator: {}", [
     event.params.delegator.toHexString(),
   ]);
+
+  // Check if the delegator is a known escrow contract
+  // If so, skip creating VoteDelegator record - the attribution is handled by CoolerDelegationEvent instead
+  const escrowEntity = DelegateEscrow.load(event.params.delegator);
+  if (escrowEntity) {
+    log.info(
+      "Skipping VoteDelegator creation for escrow contract: {}. Attribution handled by CoolerDelegationEvent.",
+      [event.params.delegator.toHexString()],
+    );
+    // We don't create VoteDelegator or DelegateChanged event for escrow contracts
+    // The voting power change is still captured by DelegateVotesChanged
+    // The delegator attribution is captured by CoolerDelegationEvent
+    return;
+  }
 
   // Create/get voters
   log.info("Previous delegatee: {}", [event.params.fromDelegate.toHexString()]);

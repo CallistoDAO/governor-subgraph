@@ -8,7 +8,7 @@ export function createVoterVotingPowerSnapshot(
   voter: Voter,
   event: DelegateVotesChanged,
 ): VoterVotingPowerSnapshot {
-  log.info("Creating voter voting power snapshot for delegate: {}", [
+  log.info("Creating voter voting power snapshot for delegatee: {}", [
     event.params.delegate.toHexString(),
   ]);
   const snapshot = new VoterVotingPowerSnapshot(
@@ -18,11 +18,11 @@ export function createVoterVotingPowerSnapshot(
   );
 
   snapshot.votingPower = toDecimal(event.params.newBalance, GOHM_DECIMALS);
-  log.info("Voting power set for delegate: {} = {}", [
+  log.info("Voting power set for delegatee: {} = {}", [
     event.params.delegate.toHexString(),
     snapshot.votingPower.toString(),
   ]);
-  log.info("Previous voting power for delegate: {} = {}", [
+  log.info("Previous voting power for delegatee: {} = {}", [
     event.params.delegate.toHexString(),
     toDecimal(event.params.previousBalance, GOHM_DECIMALS).toString(),
   ]);

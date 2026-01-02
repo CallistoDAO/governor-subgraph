@@ -1,5 +1,9 @@
 """
 This entity represents a gOHM token holder that has delegated their voting power to an address.
+
+Note: This entity only tracks direct gOHM delegations. Escrow contracts (used by Cooler V2)
+are NOT included here - their delegation attribution is tracked via CoolerDelegationEvent
+and CoolerDelegationBalance entities instead.
 """
 type VoteDelegator @entity {
   """
@@ -22,6 +26,11 @@ type VoteDelegator @entity {
 
 """
 This entity represents a voter that has received delegations and can cast votes.
+
+To get a complete picture of a voter's delegations:
+- Direct delegations: Query the `delegators` field (VoteDelegator entities)
+- Cooler delegations: Query through `latestVotingPowerSnapshot.coolerDelegations`
+- Current voting power: Query `latestVotingPowerSnapshot.votingPower`
 """
 type Voter @entity {
   """
@@ -44,13 +53,22 @@ type Voter @entity {
   votesCasted: [VoteCast!] @derivedFrom(field: "voter")
   votingPowerSnapshots: [VoterVotingPowerSnapshot!] @derivedFrom(field: "voter")
   """
-  Addresses that have delegated their voting power to this voter.
+  Addresses that have delegated their voting power to this voter via direct gOHM delegation.
+  Note: Does NOT include Cooler delegations - those are available via votingPowerSnapshots.coolerDelegations.
   """
   delegators: [VoteDelegator!] @derivedFrom(field: "delegatee")
 }
 
 """
-This entity represents a snapshot of a voter's voting power.
+This entity represents a snapshot of a voter's voting power at a specific block.
+
+The `votingPower` field contains the total voting power from ALL sources:
+- Direct gOHM delegations from individual token holders
+- Cooler V2 delegations through escrow contracts
+
+To understand the breakdown of voting power sources:
+- Query `event` for the gOHM DelegateVotesChanged event details
+- Query `coolerDelegations` for Cooler-specific attribution (delegator → delegatee)
 """
 type VoterVotingPowerSnapshot @entity(immutable: true) {
   """
@@ -78,7 +96,15 @@ type VoterVotingPowerSnapshot @entity(immutable: true) {
   blockTimestamp: BigInt!
 
   # Related records
+  """
+  The gOHM DelegateVotesChanged event that triggered this snapshot.
+  """
   event: DelegateVotesChanged @derivedFrom(field: "snapshot")
+  """
+  Cooler delegation events that contributed to this snapshot.
+  Only populated for snapshots resulting from Cooler delegations.
+  """
+  coolerDelegations: [CoolerDelegationEvent!] @derivedFrom(field: "snapshot")
 }
 
 type NewAdmin @entity(immutable: true) {
@@ -349,10 +375,11 @@ type DelegateVotesChanged @entity(immutable: true) {
 }
 
 """
-This entity tracks the mapping between DelegateEscrow contracts and their delegate addresses.
-Created when a new escrow is deployed via DelegateEscrowFactory.
+This entity tracks the mapping between DelegateEscrow contracts and their delegatee addresses.
+Created when a new escrow is deployed via DelegateEscrowFactory. This is a contract-level
+mapping (escrow address → delegatee) and is immutable since each escrow is created once per delegatee.
 """
-type DelegateEscrow @entity {
+type DelegateEscrow @entity(immutable: true) {
   """
   Record ID.
 
@@ -364,9 +391,9 @@ type DelegateEscrow @entity {
   """
   escrow: Bytes!
   """
-  The delegate receiving voting power from this escrow.
+  The delegatee receiving voting power from this escrow.
   """
-  delegate: Voter!
+  delegatee: Voter!
   """
   Block when the escrow was created.
   """
@@ -378,30 +405,70 @@ type DelegateEscrow @entity {
 }
 
 """
-This entity tracks Cooler V2 delegations, mapping original users to their delegates.
-This provides attribution for delegations made through Cooler V2's DelegateEscrow system.
+This entity records individual Cooler V2 delegation events, providing attribution for
+delegations made through the DelegateEscrow system. Each event is immutable and links
+to the VoterVotingPowerSnapshot that resulted from this delegation change.
+
+Unlike direct gOHM delegations where the delegator is known, Cooler delegations flow through
+escrow contracts. This entity captures the original delegator who deposited collateral.
 """
-type CoolerDelegation @entity {
+type CoolerDelegationEvent @entity(immutable: true) {
   """
   Record ID.
 
-  Format: {user}-{delegate}
+  Format: {blockNumber}-{logIndex}
   """
   id: String!
   """
-  The original Cooler V2 user who deposited collateral.
+  The original Cooler V2 delegator who deposited collateral.
   """
-  user: Bytes!
+  delegator: Bytes!
   """
-  The delegate receiving voting power.
+  The delegatee receiving voting power.
   """
-  delegate: Voter!
+  delegatee: Voter!
   """
   The escrow contract holding the delegated gOHM.
   """
-  escrow: Bytes!
+  escrow: DelegateEscrow!
   """
-  Current delegated amount.
+  Delegation amount change (positive = delegated, negative = undelegated).
+  """
+  amount: BigDecimal!
+  """
+  The voting power snapshot this event contributed to.
+  """
+  snapshot: VoterVotingPowerSnapshot!
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+"""
+This entity tracks the current delegation balance for a delegator-delegatee pair in Cooler V2.
+It provides an easy way to query "how much has delegator X delegated to delegatee Y?" without
+summing all CoolerDelegationEvent records.
+
+Updated whenever a CoolerDelegationEvent is processed.
+"""
+type CoolerDelegationBalance @entity {
+  """
+  Record ID.
+
+  Format: {delegator}-{delegatee}
+  """
+  id: String!
+  """
+  The original Cooler V2 delegator who deposited collateral.
+  """
+  delegator: Bytes!
+  """
+  The delegatee receiving voting power.
+  """
+  delegatee: Voter!
+  """
+  Current total delegated amount from this delegator to this delegatee.
   """
   amount: BigDecimal!
   """
