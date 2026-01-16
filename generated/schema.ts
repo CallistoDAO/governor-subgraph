@@ -2502,7 +2502,7 @@ export class DelegateVotesChanged extends Entity {
   }
 }
 
-export class DelegateEscrow extends Entity {
+export class CoolerDelegateEscrow extends Entity {
   constructor(id: Bytes) {
     super();
     this.set("id", Value.fromBytes(id));
@@ -2510,25 +2510,25 @@ export class DelegateEscrow extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save DelegateEscrow entity without an ID");
+    assert(id != null, "Cannot save CoolerDelegateEscrow entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.BYTES,
-        `Entities of type DelegateEscrow must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type CoolerDelegateEscrow must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("DelegateEscrow", id.toBytes().toHexString(), this);
+      store.set("CoolerDelegateEscrow", id.toBytes().toHexString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): DelegateEscrow | null {
-    return changetype<DelegateEscrow | null>(
-      store.get_in_block("DelegateEscrow", id.toHexString()),
+  static loadInBlock(id: Bytes): CoolerDelegateEscrow | null {
+    return changetype<CoolerDelegateEscrow | null>(
+      store.get_in_block("CoolerDelegateEscrow", id.toHexString()),
     );
   }
 
-  static load(id: Bytes): DelegateEscrow | null {
-    return changetype<DelegateEscrow | null>(
-      store.get("DelegateEscrow", id.toHexString()),
+  static load(id: Bytes): CoolerDelegateEscrow | null {
+    return changetype<CoolerDelegateEscrow | null>(
+      store.get("CoolerDelegateEscrow", id.toHexString()),
     );
   }
 
