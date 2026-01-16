@@ -4,8 +4,8 @@ import {
   DelegateVotesChanged as DelegateVotesChangedEvent,
 } from "../../generated/gOHM/gOHM";
 import {
+  CoolerDelegateEscrow,
   DelegateChanged,
-  DelegateEscrow,
   DelegateVotesChanged,
 } from "../../generated/schema";
 import { GOHM_DECIMALS } from "../constants";
@@ -21,7 +21,7 @@ export function handleDelegateChanged(event: DelegateChangedEvent): void {
 
   // Check if the delegator is a known escrow contract
   // If so, skip creating VoteDelegator record - the attribution is handled by CoolerDelegationEvent instead
-  const escrowEntity = DelegateEscrow.load(event.params.delegator);
+  const escrowEntity = CoolerDelegateEscrow.load(event.params.delegator);
   if (escrowEntity) {
     log.info(
       "Skipping VoteDelegator creation for escrow contract: {}. Attribution handled by CoolerDelegationEvent.",

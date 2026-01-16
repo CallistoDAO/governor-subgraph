@@ -15,9 +15,9 @@ import {
   handleDelegate,
 } from "../src/handlers/delegateEscrowFactory";
 import {
+  CoolerDelegateEscrow,
   CoolerDelegationBalance,
   CoolerDelegationEvent,
-  DelegateEscrow,
 } from "../generated/schema";
 
 const ESCROW = Address.fromString("0x0000000000000000000000000000000000000001");
@@ -34,13 +34,13 @@ describe("DelegateEscrowFactory", () => {
     clearStore();
   });
 
-  test("Creates DelegateEscrow entity", () => {
+  test("Creates CoolerDelegateEscrow entity", () => {
     const event = createDelegateEscrowCreatedEvent(CALLER, DELEGATEE, ESCROW);
     handleDelegateEscrowCreated(event);
 
-    assert.entityCount("DelegateEscrow", 1);
+    assert.entityCount("CoolerDelegateEscrow", 1);
     assert.fieldEquals(
-      "DelegateEscrow",
+      "CoolerDelegateEscrow",
       ESCROW.toHexString(),
       "delegatee",
       DELEGATEE.toHexString(),

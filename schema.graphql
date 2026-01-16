@@ -375,11 +375,11 @@ type DelegateVotesChanged @entity(immutable: true) {
 }
 
 """
-This entity tracks the mapping between DelegateEscrow contracts and their delegatee addresses.
+This entity tracks the mapping between Cooler DelegateEscrow contracts and their delegatee addresses.
 Created when a new escrow is deployed via DelegateEscrowFactory. This is a contract-level
 mapping (escrow address → delegatee) and is immutable since each escrow is created once per delegatee.
 """
-type DelegateEscrow @entity(immutable: true) {
+type CoolerDelegateEscrow @entity(immutable: true) {
   """
   Record ID.
 
@@ -430,7 +430,7 @@ type CoolerDelegationEvent @entity(immutable: true) {
   """
   The escrow contract holding the delegated gOHM.
   """
-  escrow: DelegateEscrow!
+  escrow: CoolerDelegateEscrow!
   """
   Delegation amount change (positive = delegated, negative = undelegated).
   """

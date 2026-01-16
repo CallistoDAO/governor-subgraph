@@ -6,7 +6,7 @@ import {
 import {
   CoolerDelegationBalance,
   CoolerDelegationEvent,
-  DelegateEscrow,
+  CoolerDelegateEscrow,
   Voter,
 } from "../../generated/schema";
 import { GOHM_DECIMALS } from "../constants";
@@ -15,7 +15,7 @@ import { getOrCreateVoter } from "../voter";
 
 /**
  * Handles the DelegateEscrowCreated event.
- * Creates a DelegateEscrow entity to track the mapping between escrow contracts and their delegatees.
+ * Creates a CoolerDelegateEscrow entity to track the mapping between escrow contracts and their delegatees.
  */
 export function handleDelegateEscrowCreated(
   event: DelegateEscrowCreatedEvent,
@@ -28,15 +28,15 @@ export function handleDelegateEscrowCreated(
   // Get or create the Voter entity for the delegatee
   const voter = getOrCreateVoter(event.params.delegate);
 
-  // Create the DelegateEscrow entity
-  const escrowEntity = new DelegateEscrow(event.params.escrow);
+  // Create the CoolerDelegateEscrow entity
+  const escrowEntity = new CoolerDelegateEscrow(event.params.escrow);
   escrowEntity.escrow = event.params.escrow;
   escrowEntity.delegatee = voter.id;
   escrowEntity.blockNumber = event.block.number;
   escrowEntity.blockTimestamp = event.block.timestamp;
   escrowEntity.save();
 
-  log.info("Created DelegateEscrow: escrow={} -> delegatee={}", [
+  log.info("Created CoolerDelegateEscrow: escrow={} -> delegatee={}", [
     event.params.escrow.toHexString(),
     event.params.delegate.toHexString(),
   ]);
@@ -55,10 +55,10 @@ export function handleDelegate(event: DelegateEvent): void {
     event.params.delegationAmountDelta.toString(),
   ]);
 
-  // Look up the DelegateEscrow to find the delegatee
-  const escrowEntity = DelegateEscrow.load(event.params.escrow);
+  // Look up the CoolerDelegateEscrow to find the delegatee
+  const escrowEntity = CoolerDelegateEscrow.load(event.params.escrow);
   if (!escrowEntity) {
-    log.warning("DelegateEscrow not found for escrow={}", [
+    log.warning("CoolerDelegateEscrow not found for escrow={}", [
       event.params.escrow.toHexString(),
     ]);
     return;
@@ -94,26 +94,19 @@ export function handleDelegate(event: DelegateEvent): void {
   const voter = Voter.load(delegateeVoter.id);
   const latestSnapshot = voter ? voter.latestVotingPowerSnapshot : null;
 
-  if (latestSnapshot) {
-    coolerDelegationEvent.snapshot = latestSnapshot;
-    log.info("Linked CoolerDelegationEvent to snapshot: {} for delegatee: {}", [
-      latestSnapshot.toHexString(),
-      delegateeAddress.toHexString(),
-    ]);
-  } else {
-    log.warning(
-      "No VoterVotingPowerSnapshot found for delegatee: {}. This may indicate the snapshot was not created yet.",
-      [delegateeAddress.toHexString()],
+  if (!latestSnapshot) {
+    throw new Error(
+      "No VoterVotingPowerSnapshot found for delegatee: " +
+        delegateeAddress.toHexString() +
+        ". DelegateVotesChanged must fire before Delegate event.",
     );
-    // We still need to set the snapshot field - use a placeholder that indicates missing snapshot
-    // This shouldn't happen in normal operation since DelegateVotesChanged fires before Delegate
-    // But we need to handle it to avoid runtime errors
-    // For now, we'll create a synthetic ID based on the event
-    const syntheticSnapshotId = delegateeAddress
-      .concatI32(event.block.number.toI32())
-      .concatI32(event.logIndex.toI32());
-    coolerDelegationEvent.snapshot = syntheticSnapshotId;
   }
+
+  coolerDelegationEvent.snapshot = latestSnapshot;
+  log.info("Linked CoolerDelegationEvent to snapshot: {} for delegatee: {}", [
+    latestSnapshot.toHexString(),
+    delegateeAddress.toHexString(),
+  ]);
 
   coolerDelegationEvent.save();
 

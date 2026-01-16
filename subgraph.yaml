@@ -87,7 +87,7 @@ dataSources:
         - VoterVotingPowerSnapshot
         - DelegateChanged
         - DelegateVotesChanged
-        - DelegateEscrow
+        - CoolerDelegateEscrow
       abis:
         - name: gOHM
           file: ./abis/gOHM.json
@@ -109,7 +109,7 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - DelegateEscrow
+        - CoolerDelegateEscrow
         - CoolerDelegationEvent
         - CoolerDelegationBalance
         - Voter
