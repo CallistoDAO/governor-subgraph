@@ -88,18 +88,34 @@ describe("delegation", () => {
         DEFAULT_LOG_INDEX.toI32(),
       ),
     );
+    if (delegateChangedRecord === null) {
+      throw new Error(
+        "DelegateChanged: DelegateChanged record should not be null",
+      );
+    }
+
     assert.stringEquals(
-      delegateChangedRecord!.delegator.toHexString(),
+      delegateChangedRecord.delegator.toHexString(),
       HOLDER.toHexString(),
       "DelegateChanged: Delegator should be the holder",
     );
+
+    let previousDelegatee = delegateChangedRecord.previousDelegatee;
+    if (previousDelegatee === null) {
+      previousDelegatee = Address.zero();
+    }
     assert.stringEquals(
-      delegateChangedRecord!.previousDelegatee.toHexString(),
+      previousDelegatee.toHexString(),
       Address.zero().toHexString(),
       "DelegateChanged: Previous delegatee should be the zero address",
     );
+
+    let newDelegatee = delegateChangedRecord.newDelegatee;
+    if (newDelegatee === null) {
+      newDelegatee = Address.zero();
+    }
     assert.stringEquals(
-      delegateChangedRecord!.newDelegatee.toHexString(),
+      newDelegatee.toHexString(),
       VOTER.toHexString(),
       "DelegateChanged: New delegatee should be the voter",
     );
@@ -210,18 +226,34 @@ describe("delegation", () => {
         newLogIndex.toI32(),
       ),
     );
+    if (delegateChangedRecord === null) {
+      throw new Error(
+        "DelegateChanged: DelegateChanged record should not be null",
+      );
+    }
+
     assert.stringEquals(
-      delegateChangedRecord!.delegator.toHexString(),
+      delegateChangedRecord.delegator.toHexString(),
       HOLDER.toHexString(),
       "DelegateChanged: Delegator should be the holder",
     );
+
+    let previousDelegatee = delegateChangedRecord.previousDelegatee;
+    if (previousDelegatee === null) {
+      previousDelegatee = Address.zero();
+    }
     assert.stringEquals(
-      delegateChangedRecord!.previousDelegatee.toHexString(),
+      previousDelegatee.toHexString(),
       VOTER.toHexString(),
       "DelegateChanged: Previous delegatee should be the voter",
     );
+
+    let newDelegatee = delegateChangedRecord.newDelegatee;
+    if (newDelegatee === null) {
+      newDelegatee = Address.zero();
+    }
     assert.stringEquals(
-      delegateChangedRecord!.newDelegatee.toHexString(),
+      newDelegatee.toHexString(),
       Address.fromString(
         "0x0000000000000000000000000000000000000003",
       ).toHexString(),
