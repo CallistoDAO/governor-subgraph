@@ -5,12 +5,21 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.82.0",
-    "@graphprotocol/graph-ts": "0.32.0",
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2",
     "prettier": "^3.3.3"
   },
   "devDependencies": {
     "matchstick-as": "0.6.0"
+  },
+  "resolutions": {
+    "axios": "^0.30.0",
+    "cross-spawn": "^7.0.5",
+    "ejs": "^3.1.10",
+    "glob": "^11.1.0",
+    "js-yaml": "^4.1.1",
+    "semver": "^7.5.2",
+    "undici": "^7.18.2"
   },
   "scripts": {
     "codegen": "graph codegen && prettier --write generated/",
