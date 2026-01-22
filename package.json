@@ -17,6 +17,7 @@
     "build": "graph build",
     "deploy": "GRAPH_VERSION_LABEL=$(cat .subgraph-version) && source .env && graph deploy --node https://api.studio.thegraph.com/deploy/ --deploy-key $GRAPH_DEPLOY_KEY --version-label $GRAPH_VERSION_LABEL olympus-governor",
     "test": "graph test",
-    "lint": "prettier --write ."
+    "lint": "prettier --write .",
+    "lint:check": "prettier --check ."
   }
 }
