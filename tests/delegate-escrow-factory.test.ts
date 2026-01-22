@@ -5,7 +5,7 @@ import {
   clearStore,
   afterEach,
 } from "matchstick-as/assembly/index";
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt, BigDecimal, Bytes } from "@graphprotocol/graph-ts";
 import {
   createDelegateEscrowCreatedEvent,
   createDelegateEvent,
@@ -18,7 +18,42 @@ import {
   CoolerDelegateEscrow,
   CoolerDelegationBalance,
   CoolerDelegationEvent,
+  Voter,
+  VoterVotingPowerSnapshot,
 } from "../generated/schema";
+
+/**
+ * Creates a VoterVotingPowerSnapshot for a voter.
+ * This simulates the DelegateVotesChanged event that fires before the Delegate event.
+ */
+function createVoterSnapshot(
+  voterAddress: Address,
+  blockNumber: BigInt,
+  logIndex: BigInt,
+): VoterVotingPowerSnapshot {
+  // Create snapshot ID: {voter}{blockNumber}{logIndex}
+  const snapshotId = voterAddress
+    .concatI32(blockNumber.toI32())
+    .concatI32(logIndex.toI32());
+
+  const snapshot = new VoterVotingPowerSnapshot(snapshotId);
+  snapshot.voter = voterAddress;
+  snapshot.votingPower = BigDecimal.fromString("0");
+  snapshot.blockNumber = blockNumber;
+  snapshot.blockTimestamp = BigInt.fromI32(1234567890);
+  snapshot.save();
+
+  // Update voter's latestVotingPowerSnapshot
+  let voter = Voter.load(voterAddress);
+  if (!voter) {
+    voter = new Voter(voterAddress);
+    voter.address = voterAddress;
+  }
+  voter.latestVotingPowerSnapshot = snapshotId;
+  voter.save();
+
+  return snapshot;
+}
 
 const ESCROW = Address.fromString("0x0000000000000000000000000000000000000001");
 const DELEGATEE = Address.fromString(
@@ -56,6 +91,11 @@ describe("DelegateEscrowFactory", () => {
     );
     handleDelegateEscrowCreated(escrowEvent);
 
+    // Create voter snapshot (simulates DelegateVotesChanged event that fires before Delegate)
+    const blockNumber = BigInt.fromI32(1);
+    const logIndex = BigInt.fromI32(0); // Snapshot log index comes before Delegate event
+    createVoterSnapshot(DELEGATEE, blockNumber, logIndex);
+
     // Then delegate
     const amount = BigInt.fromString("100000000000000000000"); // 100 gOHM
     const delegateEvent = createDelegateEvent(
@@ -89,6 +129,12 @@ describe("DelegateEscrowFactory", () => {
       ESCROW,
     );
     handleDelegateEscrowCreated(escrowEvent);
+
+    // Create voter snapshot (simulates DelegateVotesChanged event that fires before Delegate)
+    // In real usage, each delegation creates a new snapshot, but for testing we just need one
+    const blockNumber = BigInt.fromI32(1);
+    const logIndex = BigInt.fromI32(0); // Snapshot log index comes before Delegate events
+    createVoterSnapshot(DELEGATEE, blockNumber, logIndex);
 
     // First delegation (block 1, log index 1)
     const amount1 = BigInt.fromString("100000000000000000000"); // 100 gOHM
