@@ -7,7 +7,6 @@ import {
   CoolerDelegationBalance,
   CoolerDelegationEvent,
   CoolerDelegateEscrow,
-  Voter,
 } from "../../generated/schema";
 import { GOHM_DECIMALS } from "../constants";
 import { toDecimal } from "../utils/number";
@@ -58,10 +57,11 @@ export function handleDelegate(event: DelegateEvent): void {
   // Look up the CoolerDelegateEscrow to find the delegatee
   const escrowEntity = CoolerDelegateEscrow.load(event.params.escrow);
   if (!escrowEntity) {
-    log.warning("CoolerDelegateEscrow not found for escrow={}", [
-      event.params.escrow.toHexString(),
-    ]);
-    return;
+    throw new Error(
+      "CoolerDelegateEscrow not found for escrow=" +
+        event.params.escrow.toHexString() +
+        ". DelegateEscrowCreated must be emitted before Delegate event.",
+    );
   }
 
   // Get the delegatee voter - convert Bytes to Address
@@ -91,8 +91,7 @@ export function handleDelegate(event: DelegateEvent): void {
   // Link to the VoterVotingPowerSnapshot
   // The DelegateVotesChanged event (which creates the snapshot) fires BEFORE the Delegate event
   // in the same transaction, so we can look up the voter's latest snapshot
-  const voter = Voter.load(delegateeVoter.id);
-  const latestSnapshot = voter ? voter.latestVotingPowerSnapshot : null;
+  const latestSnapshot = delegateeVoter.latestVotingPowerSnapshot;
 
   if (!latestSnapshot) {
     throw new Error(
