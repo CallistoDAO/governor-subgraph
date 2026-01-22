@@ -5,18 +5,30 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.82.0",
-    "@graphprotocol/graph-ts": "0.32.0",
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2",
     "prettier": "^3.3.3"
   },
   "devDependencies": {
     "matchstick-as": "0.6.0"
+  },
+  "resolutions": {
+    "axios": "^0.30.0",
+    "cross-spawn": "^7.0.5",
+    "ejs": "^3.1.10",
+    "glob": "^11.1.0",
+    "js-yaml": "^4.1.1",
+    "lodash.trim": "npm:lodash@^4.17.21",
+    "lodash.trimend": "npm:lodash@^4.17.21",
+    "semver": "^7.5.2",
+    "undici": "^7.18.2"
   },
   "scripts": {
     "codegen": "graph codegen && prettier --write generated/",
     "build": "graph build",
     "deploy": "GRAPH_VERSION_LABEL=$(cat .subgraph-version) && source .env && graph deploy --node https://api.studio.thegraph.com/deploy/ --deploy-key $GRAPH_DEPLOY_KEY --version-label $GRAPH_VERSION_LABEL olympus-governor",
     "test": "graph test",
-    "lint": "prettier --write ."
+    "lint": "prettier --write .",
+    "lint:check": "prettier --check ."
   }
 }

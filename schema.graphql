@@ -5,7 +5,7 @@ Note: This entity only tracks direct gOHM delegations. Escrow contracts (used by
 are NOT included here - their delegation attribution is tracked via CoolerDelegationEvent
 and CoolerDelegationBalance entities instead.
 """
-type VoteDelegator @entity {
+type VoteDelegator @entity(immutable: false) {
   """
   Record ID.
 
@@ -32,7 +32,7 @@ To get a complete picture of a voter's delegations:
 - Cooler delegations: Query through `latestVotingPowerSnapshot.coolerDelegations`
 - Current voting power: Query `latestVotingPowerSnapshot.votingPower`
 """
-type Voter @entity {
+type Voter @entity(immutable: false) {
   """
   Record ID.
 
