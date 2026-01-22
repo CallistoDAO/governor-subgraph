@@ -34,3 +34,5 @@ cache
 
 tests/.bin/
 tests/.latest.json
+
+audit.json

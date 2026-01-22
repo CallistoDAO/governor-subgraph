@@ -1,7 +1,7 @@
 """
 This entity represents a gOHM token holder that has delegated their voting power to an address.
 """
-type VoteDelegator @entity {
+type VoteDelegator @entity(immutable: false) {
   """
   Record ID.
 
@@ -23,7 +23,7 @@ type VoteDelegator @entity {
 """
 This entity represents a voter that has received delegations and can cast votes.
 """
-type Voter @entity {
+type Voter @entity(immutable: false) {
   """
   Record ID.
 
