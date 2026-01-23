@@ -452,7 +452,7 @@ summing all CoolerDelegationEvent records.
 
 Updated whenever a CoolerDelegationEvent is processed.
 """
-type CoolerDelegationBalance @entity {
+type CoolerDelegationBalance @entity(immutable: false) {
   """
   Record ID.
 
